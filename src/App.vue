@@ -62,22 +62,80 @@ export default {
     //asking for account validation. Once the validation made the user is added to the system
     async register(){
 
+      try { 
+          const { user, session, error } = await supabase.auth.signUp({
+            email: this.email,
+            password: this.passwd
+          }); 
+          if (error) throw error;  
+        } catch (error) { 
+          alert(error.error_description || error.message); 
+        }  
+
     },
     //this method allows the already registred user to log in the system.
     //only authenticated users can later add or read the poems
     async login(){
+      try { 
+          const { user, session, error } = await supabase.auth.signIn({ 
+            email: this.email,
+            password: this.passwd 
+          }); 
+          if (error) throw error; 
+          else {
+            document.getElementById('signOut').style.visibility='hidden'
+            document.getElementById('addPoem').style.visibility='visible'
+          }
+        } catch (error) { 
+          alert(error.error_description || error.message)};  
 
     },
     //this method allows to add new poem for the authenticated user (after sign in) 
     //it is called when the user click on the add poem button after being entered
     //the title, the content, the visibility and the associated illustration
     async createPoem(){
+
+      var res;
+
+      const { data: objects, error } = await supabase.storage
+      .from('images')
+      .upload(supabase.auth.user().id+"_"+file.files[0].name, file.files[0])
+
+      res = supabase.storage
+      .from('images')
+      .getPublicUrl(supabase.auth.user().id+"_"+file.files[0].name).data.publicURL;
+
+      try{
+        const { data, error } = await supabase
+        .from('poems')
+        .insert([
+          { hidden: this.hidden, email:this.email, title:this.title, content: this.content, illustrationurl: res }
+        ])
+        if(error) throw(error)
+
+      } catch(error) {alert(error.error_description || error.message)}
     
     },
     //this method allows to extract all readable poems of the authenticated user
     //including his peoms and the not hidden poems. This policy is implemented by the supabase system 
     async fetchPoems(){
-        
+        try{
+        const { data, error } = await supabase
+        .from('poems')
+        .select()
+        poemsList=data
+        if (error) throw error;
+        if(data.length>0){
+          document.getElementById('poemtitle').innerHTML=data[0].title+"  "
+          document.getElementById('poemcontent').value=data[0].content
+          document.getElementById('poemillustration').src=data[0].illustrationurl
+        }
+
+        currentpoem=0;
+
+        } catch (error) {
+          alert(error.error_description || error.message);
+        }
     },
     //this function allows to display the next accessibe poem for the current user
     //the fetch button should be selected before
