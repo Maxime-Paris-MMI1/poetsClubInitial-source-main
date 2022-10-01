@@ -56,6 +56,9 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 
+var poemList // list of selected poems readabe by the current user 
+var currentpoem // the currently displayed poem that the user consults
+
 export default {
   methods: {  
     //this method allows a new user to sign up the system. Once done, the user receives an email
@@ -123,7 +126,7 @@ export default {
         const { data, error } = await supabase
         .from('poems')
         .select()
-        poemsList=data
+        poemList=data
         if (error) throw error;
         if(data.length>0){
           document.getElementById('poemtitle').innerHTML=data[0].title+"  "
@@ -140,7 +143,15 @@ export default {
     //this function allows to display the next accessibe poem for the current user
     //the fetch button should be selected before
     nextPoem(){
-    
+
+      if(currentpoem<poemList.length-1) {
+        currentpoem++
+        document.getElementById('poemtitle').innerHTML=poemList[currentpoem].title+"  "
+        document.getElementById('poemcontent').value=poemList[currentpoem].content
+        document.getElementById('poemillustration').src=poemList[currentpoem].illustrationurl
+
+      }
+      
     }
   }  
 }
