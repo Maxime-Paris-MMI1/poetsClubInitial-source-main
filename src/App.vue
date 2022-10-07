@@ -22,6 +22,13 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
     <div class="hidden" id="addPoem">
       <div><SignIn msg="Write your poem !" /></div>
       <h3>The poem remains private, until you make it public</h3>
+      <select required name="Language" v-model="Language" >
+              <option>Français</option>
+              <option>Anglais</option>
+              <option>Espagnol</option>
+              <option>German</option>
+      </select> 
+      <br>
       <label>Poem's title</label><br>
 	      <input type="text" required name="title" v-model="title" placeholder="edit me"><br>
 	      <label>Poem's content</label><br>
@@ -33,6 +40,11 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
 	      <!--<img id="illustration" src="./assets/null.png" alt="poem illustration" width="75" height="75"/><br>-->
         <input type="checkbox" v-model="hidden" value=true/>
         <label>Hidden poem</label>
+        <div>
+          <input type="text" v-model="mot">
+          <button v-on:click="filtrer()">Recherche</button>
+        </div>
+
       <br><button v-on:click="createPoem()">Add the poem</button>
       <button v-on:click="fetchPoems()">List of poems</button><br>
       <label for="poemtitle" id="poemtitle" style="color: teal;font-weight: 500;"> ... </label> 
@@ -112,7 +124,7 @@ export default {
         const { data, error } = await supabase
         .from('poems')
         .insert([
-          { hidden: this.hidden, email:this.email, title:this.title, content: this.content, illustrationurl: res }
+          { hidden: this.hidden, email:this.email, title:this.title, content: this.content, illustrationurl: res, Language:this.Language }
         ])
         if(error) throw(error)
 
@@ -152,8 +164,29 @@ export default {
 
       }
       
-    }
-  }  
+    },
+    async filtrer(){
+      try{
+        const { data, error } = await supabase
+        .from('poems')
+        .select()
+        .like('title','%'+this.mot+'%')
+        poemList=data
+        if(data.length>0){
+            document.getElementById('poemtitle').innerHTML=data[0].title+"    "
+            document.getElementById('poemcontent').value=data[0].content
+            document.getElementById('poemillustration').src=data[0].illustrationurl
+        }
+        currentpoem=0;
+            if (error) throw error;
+            }
+            catch (error) {
+              alert(error.error_description || error.message);
+            }
+  },
+  },
+
+
 }
 </script>
 
